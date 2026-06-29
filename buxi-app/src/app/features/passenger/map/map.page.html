@@ -2,9 +2,8 @@
 
   <div id="map"></div>
 
-  <!-- Top: avatar + search / route info -->
+  <!-- Top: search or route header -->
   <div class="top-overlay">
-    <!-- Normal mode -->
     <div class="top-row" *ngIf="!activeRuta">
       <div class="avatar-btn" routerLink="/passenger/profile">
         <ion-icon name="person"></ion-icon>
@@ -18,9 +17,8 @@
       </div>
     </div>
 
-    <!-- Route active mode -->
     <div class="route-header" *ngIf="activeRuta">
-      <div class="route-back" (click)="unfocusRoute()">
+      <div class="route-back" (click)="clearRoute()">
         <ion-icon name="chevron-back"></ion-icon>
       </div>
       <div class="route-header-info">
@@ -29,12 +27,6 @@
       </div>
       <div class="route-color-dot" [style.background]="activeRuta.color"></div>
     </div>
-  </div>
-
-  <!-- Routes chip (when no buses are transmitting) -->
-  <div class="live-chip" *ngIf="activeBusCount === 0 && !activeRuta && totalRoutes > 0">
-    <ion-icon name="git-branch-outline" style="font-size:13px"></ion-icon>
-    {{ totalRoutes }} rutas disponibles
   </div>
 
   <!-- Live chip -->
