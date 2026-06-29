@@ -61,3 +61,25 @@ export interface SystemConfig {
   value: string;
   description: string | null;
 }
+
+export interface Plan {
+  id: string;
+  nombre: string;
+  max_buses: number;
+  max_rutas: number;
+  gps_intervalo_seg: number;
+  precio_mensual: number;
+  descripcion: string | null;
+  activo: boolean;
+}
+
+export interface Suscripcion {
+  id: string;
+  empresa_id: string;
+  plan_id: string;
+  fecha_inicio: string;
+  fecha_fin: string | null;
+  estado: 'activa' | 'vencida' | 'cancelada' | 'prueba';
+  auto_renovar: boolean;
+  plan?: Plan;
+}

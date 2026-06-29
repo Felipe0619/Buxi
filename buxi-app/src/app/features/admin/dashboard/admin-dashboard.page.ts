@@ -8,7 +8,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { AdminJirbService } from '../../../core/services/admin-jirb.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { Empresa, Bus, Ruta } from '../../../core/models/transport.model';
-import { Calificacion, Viaje, ActivityLog, SystemConfig } from '../../../core/models/features.model';
+import { Calificacion, Viaje, ActivityLog, SystemConfig, Plan, Suscripcion } from '../../../core/models/features.model';
 import { BusLocation } from '../../../core/models/transport.model';
 
 @Component({
@@ -36,6 +36,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     { id: 'viajes', icon: 'swap-horizontal-outline', label: 'Viajes' },
     { id: 'calificaciones', icon: 'star-outline', label: 'Reseñas' },
     { id: 'logs', icon: 'document-text-outline', label: 'Actividad' },
+    { id: 'planes', icon: 'card-outline', label: 'Planes' },
     { id: 'config', icon: 'settings-outline', label: 'Configuración' },
   ];
 
@@ -54,6 +55,9 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   logs: ActivityLog[] = [];
   configItems: SystemConfig[] = [];
   liveLocations: BusLocation[] = [];
+  planes: Plan[] = [];
+  suscripciones: Suscripcion[] = [];
+  suscripcionMap = new Map<string, Suscripcion>();
 
   filteredUsers: UserProfile[] = [];
   userRoleFilter = 'todos';
@@ -76,7 +80,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
   }
 
   async loadData() {
-    const [stats, empresas, rutas, buses, users, calificaciones, viajes, logs, config, liveLocations] = await Promise.all([
+    const [stats, empresas, rutas, buses, users, calificaciones, viajes, logs, config, liveLocations, planes, suscripciones] = await Promise.all([
       this.admin.getGlobalStats(),
       this.admin.getEmpresas(),
       this.admin.getAllRutas(),
@@ -87,6 +91,8 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       this.admin.getLogs(),
       this.admin.getConfig(),
       this.admin.getAllLiveLocations(),
+      this.admin.getPlanes(),
+      this.admin.getSuscripciones(),
     ]);
     this.stats = stats;
     this.empresas = empresas;
@@ -98,6 +104,12 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     this.logs = logs;
     this.configItems = config;
     this.liveLocations = liveLocations;
+    this.planes = planes;
+    this.suscripciones = suscripciones;
+    this.suscripcionMap.clear();
+    for (const s of suscripciones) {
+      this.suscripcionMap.set(s.empresa_id, s);
+    }
     this.applyUserFilter();
   }
 
@@ -424,6 +436,65 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     return Array.from({ length: 5 }, (_, i) => i < n ? 1 : 0);
   }
 
+  getEmpresaPlan(empresaId: string): string {
+    const sub = this.suscripcionMap.get(empresaId);
+    return (sub?.plan as any)?.nombre || 'Sin plan';
+  }
+
+  getEmpresaPlanColor(empresaId: string): string {
+    const name = this.getEmpresaPlan(empresaId);
+    if (name === 'Enterprise') return '#ff5722';
+    if (name === 'Pro') return '#9c27b0';
+    if (name === 'Básico') return '#2196f3';
+    return '#b0b8c4';
+  }
+
+  async changePlan(empresa: Empresa) {
+    const inputs = this.planes.map(p => ({
+      type: 'radio' as const,
+      label: `${p.nombre} (${p.max_buses} buses, ${p.max_rutas === 9999 ? '∞' : p.max_rutas} rutas)`,
+      value: p.id,
+      checked: this.getEmpresaPlan(empresa.id) === p.nombre,
+    }));
+
+    const alert = await this.alertCtrl.create({
+      header: `Plan de ${empresa.nombre}`,
+      inputs,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Asignar', handler: async (planId) => {
+          if (!planId) return false;
+          await this.admin.assignPlan(empresa.id, planId);
+          await this.logAction('Cambiar plan', `${empresa.nombre}`, 'empresa', empresa.id);
+          await this.loadData();
+          this.showToast('Plan actualizado');
+          return true;
+        }},
+      ],
+    });
+    await alert.present();
+  }
+
+  async updatePlanPrice(plan: Plan, newPrice: string) {
+    const price = parseFloat(newPrice);
+    if (isNaN(price)) return;
+    await this.admin.updatePlan(plan.id, { precio_mensual: price });
+    plan.precio_mensual = price;
+    this.showToast('Precio actualizado');
+  }
+
+  getTabTitle(): string {
+    const titles: Record<string, string> = {
+      overview: 'Resumen general', mapa: 'Mapa en tiempo real',
+      empresas: 'Gestión de empresas', rutas: 'Gestión de rutas',
+      buses: 'Gestión de buses', usuarios: 'Gestión de usuarios',
+      viajes: 'Historial de viajes', calificaciones: 'Reseñas y calificaciones',
+      logs: 'Registro de actividad', planes: 'Planes y suscripciones',
+      config: 'Configuración del sistema',
+    };
+    return titles[this.activeTab] || '';
+  }
+
   async updateConfigValue(item: SystemConfig, newValue: string) {
     try {
       await this.admin.updateConfig(item.key, newValue);
@@ -442,17 +513,6 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       maintenance_alert_km: 'Alerta mantenimiento (km)',
     };
     return labels[key] || key;
-  }
-
-  getTabTitle(): string {
-    const titles: Record<string, string> = {
-      overview: 'Resumen general', mapa: 'Mapa en tiempo real',
-      empresas: 'Gestión de empresas', rutas: 'Gestión de rutas',
-      buses: 'Gestión de buses', usuarios: 'Gestión de usuarios',
-      viajes: 'Historial de viajes', calificaciones: 'Reseñas y calificaciones',
-      logs: 'Registro de actividad', config: 'Configuración del sistema',
-    };
-    return titles[this.activeTab] || '';
   }
 
   async onLogout() {

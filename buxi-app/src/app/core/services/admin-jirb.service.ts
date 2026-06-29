@@ -3,7 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { Empresa, Bus, Ruta, Parada } from '../models/transport.model';
 import { UserProfile } from '../models/user-profile.model';
-import { Calificacion, Horario, Viaje, ActivityLog, SystemConfig } from '../models/features.model';
+import { Calificacion, Horario, Viaje, ActivityLog, SystemConfig, Plan, Suscripcion } from '../models/features.model';
 import { BusLocation } from '../models/transport.model';
 
 @Injectable({ providedIn: 'root' })
@@ -233,6 +233,46 @@ export class AdminJirbService {
       if (!latest.has(loc.bus_id)) latest.set(loc.bus_id, loc);
     }
     return Array.from(latest.values());
+  }
+
+  // ---- PLANES ----
+  async getPlanes(): Promise<Plan[]> {
+    const { data, error } = await this.supabase.from('planes').select('*').order('precio_mensual');
+    if (error) throw error;
+    return data as Plan[];
+  }
+
+  async updatePlan(id: string, updates: Partial<Plan>): Promise<void> {
+    const { error } = await this.supabase.from('planes').update(updates).eq('id', id);
+    if (error) throw error;
+  }
+
+  // ---- SUSCRIPCIONES ----
+  async getSuscripciones(): Promise<Suscripcion[]> {
+    const { data, error } = await this.supabase
+      .from('suscripciones')
+      .select('*, plan:planes(nombre, max_buses, max_rutas, precio_mensual)')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as Suscripcion[];
+  }
+
+  async getSuscripcionByEmpresa(empresaId: string): Promise<Suscripcion | null> {
+    const { data } = await this.supabase
+      .from('suscripciones')
+      .select('*, plan:planes(nombre, max_buses, max_rutas, precio_mensual)')
+      .eq('empresa_id', empresaId)
+      .maybeSingle();
+    return data as Suscripcion | null;
+  }
+
+  async assignPlan(empresaId: string, planId: string, fechaFin?: string): Promise<void> {
+    const { error } = await this.supabase.from('suscripciones').upsert({
+      empresa_id: empresaId, plan_id: planId, estado: 'activa',
+      fecha_inicio: new Date().toISOString().split('T')[0],
+      fecha_fin: fechaFin || null, auto_renovar: true,
+    }, { onConflict: 'empresa_id' });
+    if (error) throw error;
   }
 
   // ---- EMPRESA REPORTS ----

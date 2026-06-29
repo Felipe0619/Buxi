@@ -91,11 +91,12 @@
 
             <div class="panel">
               <div class="table-header">
-                <span class="col-expand">Empresa</span><span class="col-md">Cédula</span><span class="col-md">Contacto</span><span class="col-sm">Estado</span><span class="col-sm">Acciones</span>
+                <span class="col-expand">Empresa</span><span class="col-md">Cédula</span><span class="col-sm">Plan</span><span class="col-md">Contacto</span><span class="col-sm">Estado</span><span class="col-sm">Acciones</span>
               </div>
               <div class="table-row" *ngFor="let e of empresas">
                 <span class="col-expand"><strong>{{ e.nombre }}</strong></span>
                 <span class="col-md muted">{{ e.cedula_juridica || '-' }}</span>
+                <span class="col-sm"><span class="plan-badge" [style.background]="getEmpresaPlanColor(e.id)" (click)="changePlan(e)">{{ getEmpresaPlan(e.id) }}</span></span>
                 <span class="col-md muted">{{ e.telefono || e.email || '-' }}</span>
                 <span class="col-sm"><span class="badge" [style.color]="e.estado==='activo'?'#00c853':'#aaa'">{{ e.estado }}</span></span>
                 <span class="col-sm actions">
@@ -260,6 +261,42 @@
                 <span class="col-md muted">{{ log.entidad || '-' }}</span>
               </div>
               <div class="empty" *ngIf="logs.length===0">No hay actividad registrada</div>
+            </div>
+          </div>
+
+          <!-- ========== PLANES ========== -->
+          <div *ngIf="activeTab==='planes'" class="section">
+            <div class="plans-grid">
+              <div class="plan-card" *ngFor="let p of planes" [class.inactive]="!p.activo">
+                <div class="plan-header" [style.border-color]="p.nombre==='Enterprise'?'#ff5722':p.nombre==='Pro'?'#9c27b0':'#2196f3'">
+                  <h3>{{ p.nombre }}</h3>
+                  <p>{{ p.descripcion }}</p>
+                </div>
+                <div class="plan-limits">
+                  <div class="plan-row"><ion-icon name="bus-outline"></ion-icon><span>{{ p.max_buses >= 9999 ? 'Ilimitados' : p.max_buses }} buses</span></div>
+                  <div class="plan-row"><ion-icon name="git-branch-outline"></ion-icon><span>{{ p.max_rutas >= 9999 ? 'Ilimitadas' : p.max_rutas }} rutas</span></div>
+                  <div class="plan-row"><ion-icon name="navigate-outline"></ion-icon><span>GPS cada {{ p.gps_intervalo_seg }}s</span></div>
+                </div>
+                <div class="plan-price">
+                  <label>Precio mensual (₡)</label>
+                  <input type="number" [value]="p.precio_mensual" (blur)="updatePlanPrice(p, $any($event.target).value)" />
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top:16px">
+              <div class="panel-header"><h3>Suscripciones activas</h3></div>
+              <div class="table-header">
+                <span class="col-expand">Empresa</span><span class="col-md">Plan</span><span class="col-md">Inicio</span><span class="col-md">Vence</span><span class="col-sm">Estado</span>
+              </div>
+              <div class="table-row" *ngFor="let s of suscripciones">
+                <span class="col-expand muted">{{ s.empresa_id }}</span>
+                <span class="col-md"><span class="plan-badge" [style.background]="$any(s.plan)?.nombre==='Enterprise'?'#ff5722':$any(s.plan)?.nombre==='Pro'?'#9c27b0':'#2196f3'">{{ $any(s.plan)?.nombre }}</span></span>
+                <span class="col-md muted">{{ s.fecha_inicio | date:'shortDate' }}</span>
+                <span class="col-md muted">{{ s.fecha_fin ? (s.fecha_fin | date:'shortDate') : 'Indefinida' }}</span>
+                <span class="col-sm"><span class="badge" [style.color]="s.estado==='activa'?'#00c853':s.estado==='vencida'?'#f44336':'#ff9800'">{{ s.estado }}</span></span>
+              </div>
+              <div class="empty" *ngIf="suscripciones.length===0">No hay suscripciones</div>
             </div>
           </div>
 
