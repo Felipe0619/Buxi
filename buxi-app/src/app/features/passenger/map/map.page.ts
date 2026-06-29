@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { BusTrackingService } from '../../../core/services/bus-tracking.service';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { BusLocation, Ruta, Parada } from '../../../core/models/transport.model';
+import { FeaturesService } from '../../../core/services/features.service';
 import { Geolocation } from '@capacitor/geolocation';
 
 @Component({
@@ -30,6 +31,10 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
 
   activeRuta: Ruta | null = null;
   activeParadas: Parada[] = [];
+  nearestStop: { parada: Parada; distanceKm: number } | null = null;
+  etaMinutes: number | null = null;
+  private userLat = 0;
+  private userLng = 0;
 
   get selectedBusPlaca(): string {
     return (this.selectedBus?.bus as any)?.placa || 'Bus';
@@ -56,6 +61,7 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
   constructor(
     private tracking: BusTrackingService,
     private supabase: SupabaseService,
+    private featuresService: FeaturesService,
     private router: Router,
     private route: ActivatedRoute,
   ) {}
@@ -240,10 +246,38 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
   }
 
   private updateUserPosition(lat: number, lng: number) {
+    this.userLat = lat;
+    this.userLng = lng;
+
     if (this.userMarker) {
       this.userMarker.setLatLng([lat, lng]);
     } else {
       this.userMarker = L.marker([lat, lng], { icon: this.userIcon }).addTo(this.map);
+    }
+
+    this.updateETA();
+  }
+
+  private updateETA() {
+    if (this.activeParadas.length > 0 && this.userLat !== 0) {
+      this.nearestStop = this.featuresService.findNearestStop(this.userLat, this.userLng, this.activeParadas);
+
+      if (this.nearestStop && this.busMarkers.size > 0) {
+        const firstBus = this.busMarkers.values().next().value;
+        if (firstBus) {
+          const busLatLng = firstBus.getLatLng();
+          this.etaMinutes = this.featuresService.calculateETA(
+            busLatLng.lat, busLatLng.lng,
+            this.nearestStop.parada.latitud, this.nearestStop.parada.longitud,
+            20
+          );
+        }
+      } else {
+        this.etaMinutes = null;
+      }
+    } else {
+      this.nearestStop = null;
+      this.etaMinutes = null;
     }
   }
 

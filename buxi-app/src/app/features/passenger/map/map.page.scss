@@ -150,6 +150,31 @@
   50% { opacity: 0.3; }
 }
 
+// ---- ETA CARD ----
+.eta-card {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 20px) + 100px);
+  left: 14px; right: 14px;
+  z-index: 1000;
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border-radius: 14px; padding: 12px 16px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.1);
+
+  > ion-icon { font-size: 22px; color: #00c853; }
+
+  .eta-info {
+    flex: 1; display: flex; flex-direction: column;
+    strong { font-size: 14px; color: #1a2b3c; }
+    span { font-size: 11px; color: #8a95a3; }
+  }
+
+  .eta-time {
+    text-align: center; background: #00c853; border-radius: 10px; padding: 6px 12px;
+    strong { display: block; font-size: 16px; color: #fff; }
+    span { font-size: 9px; color: rgba(255,255,255,0.7); font-weight: 600; }
+  }
+}
+
 // ---- FAB ----
 .fab-locate {
   position: absolute;

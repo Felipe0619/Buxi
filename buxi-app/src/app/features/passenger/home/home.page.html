@@ -34,6 +34,21 @@
         </ion-button>
       </div>
 
+      <!-- Favoritos rápidos -->
+      <div class="fav-section" *ngIf="favoriteRutas.length > 0">
+        <h3 class="section-label">Tus rutas favoritas</h3>
+        <div class="fav-cards">
+          <div class="fav-card" *ngFor="let ruta of favoriteRutas" (click)="openRoute(ruta)">
+            <div class="fav-color" [style.background]="ruta.color"></div>
+            <div class="fav-info">
+              <strong>{{ ruta.nombre }}</strong>
+              <span>{{ ruta.origen }} → {{ ruta.destino }}</span>
+            </div>
+            <ion-icon name="chevron-forward-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
       <div class="info-cards">
         <div class="info-card" routerLink="/passenger/map">
           <ion-icon name="navigate-outline" class="card-icon"></ion-icon>

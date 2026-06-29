@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import * as L from 'leaflet';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AdminJirbService } from '../../../core/services/admin-jirb.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { Empresa, Bus, Ruta } from '../../../core/models/transport.model';
-import { Calificacion } from '../../../core/models/features.model';
+import { Calificacion, Viaje, ActivityLog, SystemConfig } from '../../../core/models/features.model';
+import { BusLocation } from '../../../core/models/transport.model';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -13,7 +15,9 @@ import { Calificacion } from '../../../core/models/features.model';
   styleUrls: ['./admin-dashboard.page.scss'],
   standalone: false,
 })
-export class AdminDashboardPage implements OnInit {
+export class AdminDashboardPage implements OnInit, OnDestroy {
+  private adminMap: L.Map | null = null;
+  private adminBusMarkers: L.Marker[] = [];
   profile: UserProfile | null = null;
   activeTab = 'overview';
   loading = true;
@@ -21,11 +25,15 @@ export class AdminDashboardPage implements OnInit {
 
   menuItems = [
     { id: 'overview', icon: 'grid-outline', label: 'Resumen' },
+    { id: 'mapa', icon: 'map-outline', label: 'Mapa en vivo' },
     { id: 'empresas', icon: 'business-outline', label: 'Empresas' },
     { id: 'rutas', icon: 'git-branch-outline', label: 'Rutas' },
     { id: 'buses', icon: 'bus-outline', label: 'Buses' },
     { id: 'usuarios', icon: 'people-outline', label: 'Usuarios' },
+    { id: 'viajes', icon: 'swap-horizontal-outline', label: 'Viajes' },
     { id: 'calificaciones', icon: 'star-outline', label: 'Reseñas' },
+    { id: 'logs', icon: 'document-text-outline', label: 'Actividad' },
+    { id: 'config', icon: 'settings-outline', label: 'Configuración' },
   ];
 
   stats = {
@@ -38,6 +46,11 @@ export class AdminDashboardPage implements OnInit {
   buses: Bus[] = [];
   users: UserProfile[] = [];
   calificaciones: Calificacion[] = [];
+
+  viajes: Viaje[] = [];
+  logs: ActivityLog[] = [];
+  configItems: SystemConfig[] = [];
+  liveLocations: BusLocation[] = [];
 
   filteredUsers: UserProfile[] = [];
   userRoleFilter = 'todos';
@@ -60,13 +73,17 @@ export class AdminDashboardPage implements OnInit {
   }
 
   async loadData() {
-    const [stats, empresas, rutas, buses, users, calificaciones] = await Promise.all([
+    const [stats, empresas, rutas, buses, users, calificaciones, viajes, logs, config, liveLocations] = await Promise.all([
       this.admin.getGlobalStats(),
       this.admin.getEmpresas(),
       this.admin.getAllRutas(),
       this.admin.getAllBuses(),
       this.admin.getAllUsers(),
       this.admin.getAllCalificaciones(),
+      this.admin.getViajes(),
+      this.admin.getLogs(),
+      this.admin.getConfig(),
+      this.admin.getAllLiveLocations(),
     ]);
     this.stats = stats;
     this.empresas = empresas;
@@ -74,11 +91,68 @@ export class AdminDashboardPage implements OnInit {
     this.buses = buses;
     this.users = users;
     this.calificaciones = calificaciones;
+    this.viajes = viajes;
+    this.logs = logs;
+    this.configItems = config;
+    this.liveLocations = liveLocations;
     this.applyUserFilter();
   }
 
-  switchTab(tab: string) { this.activeTab = tab; }
+  switchTab(tab: string) {
+    this.activeTab = tab;
+    if (tab === 'mapa') {
+      setTimeout(() => this.initAdminMap(), 150);
+    }
+  }
+
   toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; }
+
+  private initAdminMap() {
+    if (this.adminMap) { this.adminMap.remove(); this.adminMap = null; }
+
+    const el = document.getElementById('admin-map');
+    if (!el) return;
+
+    this.adminMap = L.map('admin-map', {
+      center: [9.9281, -84.0907], zoom: 10,
+      zoomControl: true, attributionControl: false,
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }).addTo(this.adminMap);
+
+    this.adminBusMarkers.forEach(m => m.remove());
+    this.adminBusMarkers = [];
+
+    for (const loc of this.liveLocations) {
+      const busInfo = loc.bus as any;
+      const color = busInfo?.ruta?.color || '#00c853';
+
+      const icon = L.divIcon({
+        className: 'admin-bus-marker',
+        html: `<div style="width:28px;height:28px;background:${color};border-radius:50%;border:2px solid #fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.3)"><svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg></div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14],
+      });
+
+      const marker = L.marker([loc.latitud, loc.longitud], { icon })
+        .addTo(this.adminMap)
+        .bindPopup(`<b>${busInfo?.placa || 'Bus'}</b><br>${busInfo?.ruta?.nombre || 'Sin ruta'}<br>${loc.velocidad} km/h`);
+
+      this.adminBusMarkers.push(marker);
+    }
+
+    if (this.liveLocations.length > 0) {
+      const bounds = L.latLngBounds(this.liveLocations.map(l => [l.latitud, l.longitud] as L.LatLngTuple));
+      this.adminMap.fitBounds(bounds, { padding: [40, 40] });
+    }
+
+    setTimeout(() => this.adminMap?.invalidateSize(), 200);
+  }
+
+  ngOnDestroy() {
+    if (this.adminMap) { this.adminMap.remove(); }
+  }
 
   // ---- EMPRESAS ----
   async addEmpresa() {
@@ -318,6 +392,37 @@ export class AdminDashboardPage implements OnInit {
 
   getStars(n: number): number[] {
     return Array.from({ length: 5 }, (_, i) => i < n ? 1 : 0);
+  }
+
+  async updateConfigValue(item: SystemConfig, newValue: string) {
+    try {
+      await this.admin.updateConfig(item.key, newValue);
+      item.value = newValue;
+      this.showToast('Configuración actualizada');
+    } catch { this.showToast('Error', 'danger'); }
+  }
+
+  getConfigLabel(key: string): string {
+    const labels: Record<string, string> = {
+      gps_refresh_seconds: 'Refresco GPS (segundos)',
+      max_speed_kmh: 'Velocidad máxima (km/h)',
+      operating_hours_start: 'Hora inicio operaciones',
+      operating_hours_end: 'Hora fin operaciones',
+      eta_enabled: 'ETA habilitado',
+      maintenance_alert_km: 'Alerta mantenimiento (km)',
+    };
+    return labels[key] || key;
+  }
+
+  getTabTitle(): string {
+    const titles: Record<string, string> = {
+      overview: 'Resumen general', mapa: 'Mapa en tiempo real',
+      empresas: 'Gestión de empresas', rutas: 'Gestión de rutas',
+      buses: 'Gestión de buses', usuarios: 'Gestión de usuarios',
+      viajes: 'Historial de viajes', calificaciones: 'Reseñas y calificaciones',
+      logs: 'Registro de actividad', config: 'Configuración del sistema',
+    };
+    return titles[this.activeTab] || '';
   }
 
   async onLogout() {

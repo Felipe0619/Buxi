@@ -43,6 +43,19 @@
     {{ activeParadas.length }} paradas
   </div>
 
+  <!-- ETA + nearest stop -->
+  <div class="eta-card" *ngIf="nearestStop && activeRuta">
+    <ion-icon name="location"></ion-icon>
+    <div class="eta-info">
+      <strong>{{ nearestStop.parada.nombre }}</strong>
+      <span>a {{ nearestStop.distanceKm < 1 ? (nearestStop.distanceKm * 1000 | number:'1.0-0') + ' m' : (nearestStop.distanceKm | number:'1.1-1') + ' km' }}</span>
+    </div>
+    <div class="eta-time" *ngIf="etaMinutes !== null">
+      <strong>~{{ etaMinutes }} min</strong>
+      <span>ETA</span>
+    </div>
+  </div>
+
   <!-- FAB -->
   <div class="fab-locate" (click)="centerOnUser()">
     <ion-icon name="navigate"></ion-icon>

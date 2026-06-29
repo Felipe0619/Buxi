@@ -3,7 +3,8 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { Empresa, Bus, Ruta, Parada } from '../models/transport.model';
 import { UserProfile } from '../models/user-profile.model';
-import { Calificacion, Horario } from '../models/features.model';
+import { Calificacion, Horario, Viaje, ActivityLog, SystemConfig } from '../models/features.model';
+import { BusLocation } from '../models/transport.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminJirbService {
@@ -174,5 +175,85 @@ export class AdminJirbService {
   async deleteParada(id: string): Promise<void> {
     const { error } = await this.supabase.from('paradas').delete().eq('id', id);
     if (error) throw error;
+  }
+
+  // ---- VIAJES ----
+  async getViajes(limit = 50): Promise<Viaje[]> {
+    const { data, error } = await this.supabase
+      .from('viajes')
+      .select('*, bus:buses(placa), chofer:profiles(nombre_completo), ruta:rutas(nombre)')
+      .order('inicio', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data as Viaje[];
+  }
+
+  // ---- ACTIVITY LOGS ----
+  async getLogs(limit = 100): Promise<ActivityLog[]> {
+    const { data, error } = await this.supabase
+      .from('activity_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data as ActivityLog[];
+  }
+
+  async addLog(userId: string | null, accion: string, detalle?: string, entidad?: string, entidadId?: string): Promise<void> {
+    const { error } = await this.supabase.from('activity_logs').insert({
+      user_id: userId, accion, detalle: detalle || null,
+      entidad: entidad || null, entidad_id: entidadId || null,
+    });
+    if (error) throw error;
+  }
+
+  // ---- SYSTEM CONFIG ----
+  async getConfig(): Promise<SystemConfig[]> {
+    const { data, error } = await this.supabase.from('system_config').select('*').order('key');
+    if (error) throw error;
+    return data as SystemConfig[];
+  }
+
+  async updateConfig(key: string, value: string): Promise<void> {
+    const { error } = await this.supabase.from('system_config')
+      .update({ value, updated_at: new Date().toISOString() }).eq('key', key);
+    if (error) throw error;
+  }
+
+  // ---- LIVE BUS LOCATIONS ----
+  async getAllLiveLocations(): Promise<BusLocation[]> {
+    const { data, error } = await this.supabase
+      .from('bus_locations')
+      .select('*, bus:buses(placa, numero_unidad, ruta:rutas(nombre, color), empresa:empresas(nombre))')
+      .order('timestamp', { ascending: false });
+    if (error) throw error;
+
+    const latest = new Map<string, BusLocation>();
+    for (const loc of (data as BusLocation[])) {
+      if (!latest.has(loc.bus_id)) latest.set(loc.bus_id, loc);
+    }
+    return Array.from(latest.values());
+  }
+
+  // ---- EMPRESA REPORTS ----
+  async getEmpresaReport(empresaId: string): Promise<{
+    totalBuses: number; busesActivos: number; totalRutas: number;
+    totalViajes: number; totalChoferes: number;
+  }> {
+    const [buses, rutas, viajes, choferes] = await Promise.all([
+      this.supabase.from('buses').select('id, estado').eq('empresa_id', empresaId),
+      this.supabase.from('rutas').select('id').eq('empresa_id', empresaId),
+      this.supabase.from('viajes').select('id').eq('ruta_id', empresaId),
+      this.supabase.from('profiles').select('id').eq('empresa_id', empresaId).eq('rol', 'chofer'),
+    ]);
+
+    const busData = (buses.data || []) as any[];
+    return {
+      totalBuses: busData.length,
+      busesActivos: busData.filter(b => b.estado === 'en_ruta' || b.estado === 'activo').length,
+      totalRutas: (rutas.data || []).length,
+      totalViajes: (viajes.data || []).length,
+      totalChoferes: (choferes.data || []).length,
+    };
   }
 }

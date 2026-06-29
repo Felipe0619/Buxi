@@ -30,3 +30,34 @@ export interface UserPreferences {
   dark_mode: boolean;
   notifications_enabled: boolean;
 }
+
+export interface Viaje {
+  id: string;
+  bus_id: string;
+  chofer_id: string;
+  ruta_id: string;
+  inicio: string;
+  fin: string | null;
+  estado: 'en_curso' | 'completado' | 'cancelado';
+  distancia_km: number;
+  created_at: string;
+  bus?: any;
+  chofer?: any;
+  ruta?: any;
+}
+
+export interface ActivityLog {
+  id: string;
+  user_id: string | null;
+  accion: string;
+  detalle: string | null;
+  entidad: string | null;
+  entidad_id: string | null;
+  created_at: string;
+}
+
+export interface SystemConfig {
+  key: string;
+  value: string;
+  description: string | null;
+}

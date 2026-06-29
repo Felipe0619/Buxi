@@ -44,12 +44,7 @@
       <div class="topbar">
         <ion-icon name="menu-outline" class="menu-toggle" (click)="toggleSidebar()"></ion-icon>
         <div class="topbar-title">
-          <h1>{{ activeTab === 'overview' ? 'Resumen general' :
-                 activeTab === 'empresas' ? 'Gestión de empresas' :
-                 activeTab === 'rutas' ? 'Gestión de rutas' :
-                 activeTab === 'buses' ? 'Gestión de buses' :
-                 activeTab === 'usuarios' ? 'Gestión de usuarios' :
-                 'Reseñas y calificaciones' }}</h1>
+          <h1>{{ getTabTitle() }}</h1>
         </div>
         <div class="topbar-user" *ngIf="profile">
           <span>{{ profile.nombre_completo }}</span>
@@ -208,6 +203,84 @@
                 </span>
               </div>
               <div class="empty" *ngIf="calificaciones.length===0">No hay calificaciones</div>
+            </div>
+          </div>
+
+          <!-- ========== MAPA EN VIVO ========== -->
+          <div *ngIf="activeTab==='mapa'" class="section">
+            <div class="live-map-container">
+              <div id="admin-map"></div>
+              <div class="map-legend">
+                <div class="legend-item"><div class="legend-dot green"></div> En ruta</div>
+                <div class="legend-item"><div class="legend-dot blue"></div> Activo</div>
+                <div class="legend-item"><div class="legend-dot gray"></div> Inactivo</div>
+              </div>
+            </div>
+            <div class="panel" style="margin-top:12px">
+              <div class="panel-header"><h3>Buses transmitiendo ({{ liveLocations.length }})</h3></div>
+              <div class="table-row" *ngFor="let loc of liveLocations">
+                <div class="dot" style="background:#00c853"></div>
+                <strong>{{ $any(loc.bus)?.placa || 'Bus' }}</strong>
+                <span class="col-expand muted">{{ $any(loc.bus)?.ruta?.nombre || '-' }}</span>
+                <span class="muted">{{ loc.velocidad | number:'1.0-0' }} km/h</span>
+                <span class="muted">{{ loc.timestamp | date:'shortTime' }}</span>
+              </div>
+              <div class="empty" *ngIf="liveLocations.length===0">No hay buses transmitiendo</div>
+            </div>
+          </div>
+
+          <!-- ========== VIAJES ========== -->
+          <div *ngIf="activeTab==='viajes'" class="section">
+            <div class="panel">
+              <div class="table-header">
+                <span class="col-sm">Estado</span><span class="col-md">Bus</span><span class="col-expand">Ruta</span><span class="col-md">Chofer</span><span class="col-md">Inicio</span><span class="col-md">Fin</span>
+              </div>
+              <div class="table-row" *ngFor="let v of viajes">
+                <span class="col-sm"><span class="status-pill" [style.background]="v.estado==='en_curso'?'#2196f3':v.estado==='completado'?'#00c853':'#f44336'">{{ v.estado }}</span></span>
+                <span class="col-md"><strong>{{ $any(v.bus)?.placa || '-' }}</strong></span>
+                <span class="col-expand muted">{{ $any(v.ruta)?.nombre || '-' }}</span>
+                <span class="col-md muted">{{ $any(v.chofer)?.nombre_completo || '-' }}</span>
+                <span class="col-md muted">{{ v.inicio | date:'short' }}</span>
+                <span class="col-md muted">{{ v.fin ? (v.fin | date:'short') : 'En curso' }}</span>
+              </div>
+              <div class="empty" *ngIf="viajes.length===0">No hay viajes registrados</div>
+            </div>
+          </div>
+
+          <!-- ========== LOGS ========== -->
+          <div *ngIf="activeTab==='logs'" class="section">
+            <div class="panel">
+              <div class="table-header">
+                <span class="col-md">Fecha</span><span class="col-md">Acción</span><span class="col-expand">Detalle</span><span class="col-md">Entidad</span>
+              </div>
+              <div class="table-row" *ngFor="let log of logs">
+                <span class="col-md muted">{{ log.created_at | date:'short' }}</span>
+                <span class="col-md"><strong>{{ log.accion }}</strong></span>
+                <span class="col-expand muted">{{ log.detalle || '-' }}</span>
+                <span class="col-md muted">{{ log.entidad || '-' }}</span>
+              </div>
+              <div class="empty" *ngIf="logs.length===0">No hay actividad registrada</div>
+            </div>
+          </div>
+
+          <!-- ========== CONFIGURACIÓN ========== -->
+          <div *ngIf="activeTab==='config'" class="section">
+            <div class="panel">
+              <div class="panel-header"><h3>Parámetros del sistema</h3></div>
+              <div class="config-item" *ngFor="let c of configItems">
+                <div class="config-info">
+                  <strong>{{ getConfigLabel(c.key) }}</strong>
+                  <span class="muted">{{ c.description }}</span>
+                </div>
+                <div class="config-input">
+                  <input
+                    type="text"
+                    [value]="c.value"
+                    (blur)="updateConfigValue(c, $any($event.target).value)"
+                    (keyup.enter)="updateConfigValue(c, $any($event.target).value)"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

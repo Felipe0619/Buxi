@@ -232,6 +232,48 @@
   ion-icon { font-size: 13px; color: #dfe3e8; &.on { color: #ffc107; } }
 }
 
+// ====== LIVE MAP ======
+.live-map-container {
+  background: #fff; border-radius: 14px; overflow: hidden; position: relative;
+
+  #admin-map { width: 100%; height: 400px; }
+
+  .map-legend {
+    position: absolute; bottom: 12px; left: 12px; z-index: 1000;
+    display: flex; gap: 12px; background: rgba(255,255,255,0.95);
+    padding: 6px 14px; border-radius: 8px; font-size: 11px; color: #5a6677;
+
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      &.green { background: #00c853; }
+      &.blue { background: #2196f3; }
+      &.gray { background: #b0b8c4; }
+    }
+  }
+}
+
+// ====== CONFIG ======
+.config-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid #f4f5f7;
+
+  &:last-child { border-bottom: none; }
+
+  .config-info {
+    display: flex; flex-direction: column;
+    strong { font-size: 13px; color: #1a2b3c; }
+    .muted { font-size: 11px; color: #8a95a3; margin-top: 2px; }
+  }
+
+  .config-input input {
+    width: 120px; padding: 8px 12px; border: 1.5px solid #eaecf0;
+    border-radius: 8px; font-size: 13px; color: #1a2b3c; text-align: right;
+    outline: none; background: #f8f9fb;
+    &:focus { border-color: #00c853; background: #fff; }
+  }
+}
+
 // ====== RESPONSIVE ======
 @media (max-width: 768px) {
   .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
