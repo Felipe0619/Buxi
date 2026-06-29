@@ -39,6 +39,21 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
   {
+    path: 'passenger/routes',
+    loadChildren: () => import('./features/passenger/routes/routes.module').then(m => m.RoutesPageModule),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'passenger/profile',
+    loadChildren: () => import('./features/passenger/profile/profile.module').then(m => m.ProfilePageModule),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'chofer/home',
+    loadChildren: () => import('./features/chofer/home/chofer-home.module').then(m => m.ChoferHomePageModule),
+    canActivate: [AuthGuard],
+  },
+  {
     path: '**',
     redirectTo: 'splash',
   },

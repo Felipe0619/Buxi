@@ -1,0 +1,56 @@
+<ion-content [fullscreen]="true" class="chofer-content">
+
+  <div id="chofer-map"></div>
+
+  <!-- Header -->
+  <div class="chofer-header">
+    <div class="header-card">
+      <div class="header-left">
+        <div class="driver-avatar">
+          <ion-icon name="person"></ion-icon>
+        </div>
+        <div class="header-info">
+          <h3>{{ profile?.nombre_completo || 'Chofer' }}</h3>
+          <p *ngIf="assignedBus">{{ assignedBus.placa }} · {{ assignedBus.ruta?.nombre || 'Sin ruta' }}</p>
+          <p *ngIf="!assignedBus" class="no-bus">Sin bus asignado</p>
+        </div>
+      </div>
+      <ion-button fill="clear" size="small" (click)="onLogout()">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="status-bar" [class.active]="tracking">
+    <div class="status-dot"></div>
+    <span>{{ tracking ? 'Transmitiendo en vivo' : 'Sin transmitir' }}</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="chofer-loading" *ngIf="loading">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- FAB buttons -->
+  <div class="fab-group">
+    <div class="fab-btn" (click)="centerOnMe()">
+      <ion-icon name="locate-outline"></ion-icon>
+    </div>
+  </div>
+
+  <!-- Bottom control -->
+  <div class="bottom-control">
+    <ion-button
+      expand="block"
+      [class.btn-start]="!tracking"
+      [class.btn-stop]="tracking"
+      (click)="toggleTracking()"
+      [disabled]="!assignedBus"
+    >
+      <ion-icon [name]="tracking ? 'stop-circle-outline' : 'play-circle-outline'" slot="start"></ion-icon>
+      {{ tracking ? 'Detener transmisión' : 'Iniciar ruta' }}
+    </ion-button>
+  </div>
+
+</ion-content>
