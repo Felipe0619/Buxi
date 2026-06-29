@@ -43,9 +43,13 @@ export class LoginPage {
 
     try {
       const { email, password } = this.loginForm.value;
-      await this.supabase.signIn(email, password);
+      const authData = await this.supabase.signIn(email, password);
 
-      const profile = await this.supabase.getProfile();
+      let profile = null;
+      try {
+        profile = await this.supabase.getProfile();
+      } catch {}
+
       if (profile) {
         this.navigateByRole(profile.rol);
       } else {
