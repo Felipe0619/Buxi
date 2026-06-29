@@ -1,10 +1,11 @@
 <ion-content [fullscreen]="true" class="emp-shell" [scrollY]="false">
   <div class="layout" [class.sidebar-closed]="!sidebarOpen">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-header">
         <div class="logo-mark">
-          <svg viewBox="0 0 24 24" fill="white" width="22" height="22"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>
+          <svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>
         </div>
         <div class="logo-text" *ngIf="sidebarOpen">
           <span class="logo-name">Buxi</span>
@@ -27,92 +28,169 @@
       </div>
     </aside>
 
-    <main class="main-content">
+    <!-- MAIN -->
+    <main class="main">
       <div class="topbar">
-        <ion-icon name="menu-outline" class="menu-toggle" (click)="toggleSidebar()"></ion-icon>
-        <h1>{{ activeTab==='overview'?'Resumen':activeTab==='rutas'?'Rutas':activeTab==='buses'?'Buses':'Choferes' }}</h1>
+        <ion-icon name="menu-outline" class="toggle" (click)="toggleSidebar()"></ion-icon>
+        <div class="topbar-info">
+          <h1 *ngIf="activeTab==='inicio'">¡Bienvenido, {{ profile?.nombre_completo }}!</h1>
+          <h1 *ngIf="activeTab==='rutas'">Mis rutas</h1>
+          <h1 *ngIf="activeTab==='buses'">Buses</h1>
+          <h1 *ngIf="activeTab==='choferes'">Choferes</h1>
+          <h1 *ngIf="activeTab==='mapa'">Seguimiento en vivo</h1>
+          <p *ngIf="activeTab==='inicio'">Resumen general de tu operación en tiempo real</p>
+        </div>
         <div class="topbar-user" *ngIf="profile">
-          <span>{{ profile.nombre_completo }}</span>
+          <div class="user-avatar">{{ profile.nombre_completo.charAt(0) }}</div>
         </div>
       </div>
 
-      <div class="content-area">
-        <div *ngIf="loading" class="loading-state"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="content" *ngIf="!loading">
 
-        <div *ngIf="!loading">
-          <!-- OVERVIEW -->
-          <div *ngIf="activeTab==='overview'">
-            <div class="stats-row">
-              <div class="stat-card green"><div class="sc-val">{{ stats.buses }}</div><div class="sc-lbl">Buses</div></div>
-              <div class="stat-card blue"><div class="sc-val">{{ stats.rutas }}</div><div class="sc-lbl">Rutas</div></div>
-              <div class="stat-card purple"><div class="sc-val">{{ stats.choferes }}</div><div class="sc-lbl">Choferes</div></div>
-              <div class="stat-card orange"><div class="sc-val">{{ stats.busesEnRuta }}</div><div class="sc-lbl">En ruta</div></div>
-            </div>
+        <!-- ===== INICIO ===== -->
+        <div *ngIf="activeTab==='inicio'" class="page">
 
-            <div class="panel">
-              <div class="panel-header"><h3>Buses</h3></div>
-              <div class="table-row" *ngFor="let bus of buses">
-                <div class="dot" [style.background]="getBusStatusColor(bus.estado)"></div>
-                <strong>{{ bus.placa }}</strong>
-                <span class="muted flex1">{{ $any(bus.ruta)?.nombre || 'Sin ruta' }}</span>
-                <span class="badge" [style.color]="getBusStatusColor(bus.estado)">{{ getBusStatus(bus.estado) }}</span>
+          <!-- Stats -->
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-icon green"><ion-icon name="bus"></ion-icon></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ stats.buses }}</span>
+                <span class="stat-lbl">Buses registrados</span>
               </div>
-              <div class="empty" *ngIf="buses.length===0">No hay buses</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><ion-icon name="git-branch"></ion-icon></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ activeRoutesCount }}</span>
+                <span class="stat-lbl">Rutas activas</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon purple"><ion-icon name="people"></ion-icon></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ stats.choferes }}</span>
+                <span class="stat-lbl">Choferes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon orange"><ion-icon name="navigate"></ion-icon></div>
+              <div class="stat-data">
+                <span class="stat-val">{{ stats.busesEnRuta }}</span>
+                <span class="stat-lbl">En ruta ahora</span>
+              </div>
             </div>
           </div>
 
-          <!-- RUTAS -->
-          <div *ngIf="activeTab==='rutas'">
-            <ion-button class="btn-primary" (click)="addRuta()"><ion-icon name="add" slot="start"></ion-icon>Nueva ruta</ion-button>
-            <div class="panel">
-              <div class="table-row" *ngFor="let r of rutas">
-                <div class="color-pip" [style.background]="r.color"></div>
+          <!-- Map + Info row -->
+          <div class="grid-2">
+            <div class="card map-card">
+              <div class="card-header">
+                <h3>Seguimiento en vivo</h3>
+                <span class="live-badge" *ngIf="activeBusCount > 0"><span class="pulse-dot"></span> {{ activeBusCount }} en línea</span>
+              </div>
+              <div id="emp-map-mini" class="mini-map"></div>
+              <div class="map-footer" (click)="switchTab('mapa')">
+                <span>Ver mapa completo</span>
+                <ion-icon name="arrow-forward"></ion-icon>
+              </div>
+            </div>
+
+            <div class="card-stack">
+              <!-- Rutas resumen -->
+              <div class="card">
+                <div class="card-header"><h3>Rutas</h3></div>
+                <div class="mini-list">
+                  <div class="mini-item" *ngFor="let r of rutas | slice:0:4">
+                    <div class="color-dot" [style.background]="r.color"></div>
+                    <span class="flex1">{{ r.nombre }}</span>
+                    <span class="badge" [style.color]="r.estado==='activa'?'#00c853':'#aaa'">{{ r.estado }}</span>
+                  </div>
+                  <div class="mini-item empty" *ngIf="rutas.length===0">Sin rutas</div>
+                </div>
+              </div>
+
+              <!-- Buses resumen -->
+              <div class="card">
+                <div class="card-header"><h3>Buses recientes</h3></div>
+                <div class="mini-list">
+                  <div class="mini-item" *ngFor="let b of buses | slice:0:4">
+                    <div class="status-dot" [style.background]="getBusColor(b.estado)"></div>
+                    <strong>{{ b.placa }}</strong>
+                    <span class="flex1 muted">{{ $any(b.ruta)?.nombre || '-' }}</span>
+                    <span class="status-tag" [style.background]="getBusColor(b.estado)">{{ getBusStatus(b.estado) }}</span>
+                  </div>
+                  <div class="mini-item empty" *ngIf="buses.length===0">Sin buses</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== MAPA COMPLETO ===== -->
+        <div *ngIf="activeTab==='mapa'" class="page">
+          <div class="card" style="padding:0;overflow:hidden">
+            <div id="emp-map-full" style="height:calc(100vh - 120px)"></div>
+          </div>
+        </div>
+
+        <!-- ===== RUTAS ===== -->
+        <div *ngIf="activeTab==='rutas'" class="page">
+          <ion-button class="btn-action" (click)="addRuta()"><ion-icon name="add" slot="start"></ion-icon>Nueva ruta</ion-button>
+          <div class="card">
+            <div class="table-row" *ngFor="let r of rutas">
+              <div class="color-dot" [style.background]="r.color"></div>
+              <div class="row-main">
                 <strong>{{ r.nombre }}</strong>
-                <span class="muted flex1">{{ r.origen }} → {{ r.destino }}</span>
-                <span class="badge" [style.color]="r.estado==='activa'?'#00c853':'#aaa'">{{ r.estado }}</span>
-                <ion-icon name="trash-outline" class="action-icon danger" (click)="deleteRuta(r)"></ion-icon>
+                <span class="muted">{{ r.origen }} → {{ r.destino }}</span>
               </div>
-              <div class="empty" *ngIf="rutas.length===0">No hay rutas</div>
+              <span class="badge" [style.color]="r.estado==='activa'?'#00c853':'#aaa'">{{ r.estado }}</span>
+              <ion-icon name="trash-outline" class="act-icon danger" (click)="deleteRuta(r)"></ion-icon>
             </div>
-          </div>
-
-          <!-- BUSES -->
-          <div *ngIf="activeTab==='buses'">
-            <ion-button class="btn-primary" (click)="addBus()"><ion-icon name="add" slot="start"></ion-icon>Nuevo bus</ion-button>
-            <div class="panel">
-              <div class="table-row" *ngFor="let bus of buses">
-                <div class="dot" [style.background]="getBusStatusColor(bus.estado)"></div>
-                <div class="row-info">
-                  <strong>{{ bus.placa }}</strong>
-                  <span class="muted">Ruta: {{ $any(bus.ruta)?.nombre || '-' }} · Chofer: {{ bus.chofer?.nombre_completo || '-' }}</span>
-                </div>
-                <div class="row-actions">
-                  <ion-icon name="git-branch-outline" class="action-icon" (click)="assignBusRoute(bus)"></ion-icon>
-                  <ion-icon name="person-outline" class="action-icon" (click)="assignBusChofer(bus)"></ion-icon>
-                  <ion-icon name="trash-outline" class="action-icon danger" (click)="deleteBus(bus)"></ion-icon>
-                </div>
-              </div>
-              <div class="empty" *ngIf="buses.length===0">No hay buses</div>
-            </div>
-          </div>
-
-          <!-- CHOFERES -->
-          <div *ngIf="activeTab==='choferes'">
-            <ion-button class="btn-primary" (click)="addChofer()"><ion-icon name="add" slot="start"></ion-icon>Nuevo chofer</ion-button>
-            <div class="panel">
-              <div class="table-row" *ngFor="let c of choferes">
-                <div class="avatar-mini"><ion-icon name="person"></ion-icon></div>
-                <div class="row-info">
-                  <strong>{{ c.nombre_completo }}</strong>
-                  <span class="muted">{{ c.correo }}</span>
-                </div>
-                <span class="badge" [style.color]="c.estado==='activo'?'#00c853':'#aaa'">{{ c.estado }}</span>
-              </div>
-              <div class="empty" *ngIf="choferes.length===0">No hay choferes</div>
-            </div>
+            <div class="empty" *ngIf="rutas.length===0">No hay rutas creadas</div>
           </div>
         </div>
+
+        <!-- ===== BUSES ===== -->
+        <div *ngIf="activeTab==='buses'" class="page">
+          <ion-button class="btn-action" (click)="addBus()"><ion-icon name="add" slot="start"></ion-icon>Nuevo bus</ion-button>
+          <div class="card">
+            <div class="table-row" *ngFor="let b of buses">
+              <div class="status-dot" [style.background]="getBusColor(b.estado)"></div>
+              <div class="row-main">
+                <strong>{{ b.placa }} <span class="unit-tag" *ngIf="b.numero_unidad">{{ b.numero_unidad }}</span></strong>
+                <span class="muted">Ruta: {{ $any(b.ruta)?.nombre || '-' }} · Chofer: {{ b.chofer?.nombre_completo || '-' }}</span>
+              </div>
+              <span class="status-tag" [style.background]="getBusColor(b.estado)">{{ getBusStatus(b.estado) }}</span>
+              <div class="act-group">
+                <ion-icon name="git-branch-outline" class="act-icon" (click)="assignBusRoute(b)"></ion-icon>
+                <ion-icon name="person-outline" class="act-icon" (click)="assignBusChofer(b)"></ion-icon>
+                <ion-icon name="trash-outline" class="act-icon danger" (click)="deleteBus(b)"></ion-icon>
+              </div>
+            </div>
+            <div class="empty" *ngIf="buses.length===0">No hay buses</div>
+          </div>
+        </div>
+
+        <!-- ===== CHOFERES ===== -->
+        <div *ngIf="activeTab==='choferes'" class="page">
+          <ion-button class="btn-action" (click)="addChofer()"><ion-icon name="add" slot="start"></ion-icon>Nuevo chofer</ion-button>
+          <div class="card">
+            <div class="table-row" *ngFor="let c of choferes">
+              <div class="avatar-sm"><ion-icon name="person"></ion-icon></div>
+              <div class="row-main">
+                <strong>{{ c.nombre_completo }}</strong>
+                <span class="muted">{{ c.correo }}</span>
+              </div>
+              <span class="badge" [style.color]="c.estado==='activo'?'#00c853':'#aaa'">{{ c.estado }}</span>
+            </div>
+            <div class="empty" *ngIf="choferes.length===0">No hay choferes</div>
+          </div>
+        </div>
+
       </div>
+
+      <div *ngIf="loading" class="loading"><ion-spinner name="crescent"></ion-spinner></div>
     </main>
   </div>
 </ion-content>
