@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import * as L from 'leaflet';
+import { createClient, RealtimeChannel } from '@supabase/supabase-js';
+import { environment } from '../../../../environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AdminJirbService } from '../../../core/services/admin-jirb.service';
@@ -17,7 +19,8 @@ import { BusLocation } from '../../../core/models/transport.model';
 })
 export class AdminDashboardPage implements OnInit, OnDestroy {
   private adminMap: L.Map | null = null;
-  private adminBusMarkers: L.Marker[] = [];
+  private adminBusMarkers = new Map<string, L.Marker>();
+  private realtimeChannel: RealtimeChannel | null = null;
   profile: UserProfile | null = null;
   activeTab = 'overview';
   loading = true;
@@ -123,23 +126,10 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     }).addTo(this.adminMap);
 
     this.adminBusMarkers.forEach(m => m.remove());
-    this.adminBusMarkers = [];
+    this.adminBusMarkers.clear();
 
     for (const loc of this.liveLocations) {
-      const busInfo = loc.bus as any;
-      const color = busInfo?.ruta?.color || '#00c853';
-
-      const icon = L.divIcon({
-        className: 'admin-bus-marker',
-        html: `<div style="width:28px;height:28px;background:${color};border-radius:50%;border:2px solid #fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.3)"><svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg></div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14],
-      });
-
-      const marker = L.marker([loc.latitud, loc.longitud], { icon })
-        .addTo(this.adminMap)
-        .bindPopup(`<b>${busInfo?.placa || 'Bus'}</b><br>${busInfo?.ruta?.nombre || 'Sin ruta'}<br>${loc.velocidad} km/h`);
-
-      this.adminBusMarkers.push(marker);
+      this.addAdminBusMarker(loc);
     }
 
     if (this.liveLocations.length > 0) {
@@ -147,11 +137,49 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       this.adminMap.fitBounds(bounds, { padding: [40, 40] });
     }
 
+    this.startMapRealtime();
     setTimeout(() => this.adminMap?.invalidateSize(), 200);
   }
 
+  private addAdminBusMarker(loc: BusLocation) {
+    if (!this.adminMap) return;
+    const busInfo = loc.bus as any;
+    const color = busInfo?.ruta?.color || '#00c853';
+
+    if (this.adminBusMarkers.has(loc.bus_id)) {
+      this.adminBusMarkers.get(loc.bus_id)!.setLatLng([loc.latitud, loc.longitud]);
+      return;
+    }
+
+    const icon = L.divIcon({
+      className: 'admin-bus-marker',
+      html: `<div style="width:28px;height:28px;background:${color};border-radius:50%;border:2px solid #fff;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.3)"><svg viewBox="0 0 24 24" fill="white" width="12" height="12"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg></div>`,
+      iconSize: [28, 28], iconAnchor: [14, 14],
+    });
+
+    const marker = L.marker([loc.latitud, loc.longitud], { icon })
+      .addTo(this.adminMap)
+      .bindPopup(`<b>${busInfo?.placa || 'Bus'}</b><br>${busInfo?.ruta?.nombre || 'Sin ruta'}<br>${loc.velocidad} km/h`);
+
+    this.adminBusMarkers.set(loc.bus_id, marker);
+  }
+
+  private startMapRealtime() {
+    const sb = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+    this.realtimeChannel = sb.channel('admin-live-map')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'bus_locations' }, (payload) => {
+        const loc = payload.new as BusLocation;
+        this.addAdminBusMarker(loc);
+      })
+      .subscribe();
+  }
+
   ngOnDestroy() {
-    if (this.adminMap) { this.adminMap.remove(); }
+    if (this.adminMap) this.adminMap.remove();
+    if (this.realtimeChannel) {
+      const sb = createClient(environment.supabaseUrl, environment.supabaseAnonKey);
+      sb.removeChannel(this.realtimeChannel);
+    }
   }
 
   // ---- EMPRESAS ----
@@ -169,10 +197,11 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         { text: 'Crear', handler: async (d) => {
           if (!d.nombre) return false;
           try {
-            await this.admin.createEmpresa({
+            const emp = await this.admin.createEmpresa({
               nombre: d.nombre, cedula_juridica: d.cedula_juridica || null,
               telefono: d.telefono || null, email: d.email || null, estado: 'activo',
             });
+            await this.logAction('Crear empresa', d.nombre, 'empresa', emp.id);
             await this.loadData(); this.showToast('Empresa creada');
           } catch { this.showToast('Error', 'danger'); }
           return true;
@@ -196,7 +225,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Eliminar', role: 'destructive', handler: async () => {
-          try { await this.admin.deleteEmpresa(empresa.id); await this.loadData(); this.showToast('Empresa eliminada'); }
+          try { await this.admin.deleteEmpresa(empresa.id); await this.logAction('Eliminar empresa', empresa.nombre, 'empresa', empresa.id); await this.loadData(); this.showToast('Empresa eliminada'); }
           catch { this.showToast('Error', 'danger'); }
         }},
       ],
@@ -265,7 +294,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Eliminar', role: 'destructive', handler: async () => {
-          try { await this.admin.deleteRuta(ruta.id); await this.loadData(); this.showToast('Ruta eliminada'); }
+          try { await this.admin.deleteRuta(ruta.id); await this.logAction('Eliminar ruta', ruta.nombre, 'ruta', ruta.id); await this.loadData(); this.showToast('Ruta eliminada'); }
           catch { this.showToast('Error', 'danger'); }
         }},
       ],
@@ -280,7 +309,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         { text: 'Eliminar', role: 'destructive', handler: async () => {
-          try { await this.admin.deleteBus(bus.id); await this.loadData(); this.showToast('Bus eliminado'); }
+          try { await this.admin.deleteBus(bus.id); await this.logAction('Eliminar bus', bus.placa, 'bus', bus.id); await this.loadData(); this.showToast('Bus eliminado'); }
           catch { this.showToast('Error', 'danger'); }
         }},
       ],
@@ -360,6 +389,7 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
         { text: 'Asignar', handler: async (empresaId) => {
           if (!empresaId) return false;
           await this.admin.updateUserRole(userId, rol, empresaId);
+          await this.logAction('Cambiar rol', `${rol} en empresa`, 'usuario', userId);
           await this.loadData(); this.showToast('Usuario asignado');
           return true;
         }},
@@ -435,6 +465,12 @@ export class AdminDashboardPage implements OnInit, OnDestroy {
     await loading.present();
     await this.loadData();
     await loading.dismiss();
+  }
+
+  private async logAction(accion: string, detalle?: string, entidad?: string, entidadId?: string) {
+    try {
+      await this.admin.addLog(this.profile?.id || null, accion, detalle, entidad, entidadId);
+    } catch {}
   }
 
   private async showToast(msg: string, color = 'success') {

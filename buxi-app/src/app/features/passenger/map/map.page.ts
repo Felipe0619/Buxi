@@ -289,6 +289,18 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
 
   closeBusInfo() { this.selectedBus = null; }
 
+  shareBusLocation() {
+    if (!this.selectedBus) return;
+    const lat = this.selectedBus.latitud;
+    const lng = this.selectedBus.longitud;
+    const placa = this.selectedBusPlaca;
+    const ruta = this.selectedBusRuta;
+    const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+    const text = `🚌 Mi bus ${placa} (${ruta}) está aquí: ${mapUrl}`;
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+  }
+
   ngOnDestroy() {
     this.tracking.unsubscribe();
     this.locationSub?.unsubscribe();

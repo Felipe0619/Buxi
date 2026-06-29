@@ -93,6 +93,10 @@
         <ion-icon name="time-outline"></ion-icon>
         {{ selectedBus.timestamp | date:'shortTime' }}
       </div>
+      <div class="stat-item share-btn" (click)="shareBusLocation()">
+        <ion-icon name="share-social-outline"></ion-icon>
+        Compartir
+      </div>
     </div>
   </div>
 

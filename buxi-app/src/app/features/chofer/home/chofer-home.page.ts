@@ -127,11 +127,15 @@ export class ChoferHomePage implements OnInit, AfterViewInit, OnDestroy {
 
     await this.choferService.updateBusStatus(this.assignedBus!.id, 'en_ruta');
 
+    if (this.profile && this.assignedBus!.ruta_id) {
+      await this.choferService.startViaje(this.assignedBus!.id, this.profile.id, this.assignedBus!.ruta_id);
+    }
+
     await this.sendLocation();
     this.trackingInterval = setInterval(() => this.sendLocation(), 5000);
 
     const toast = await this.toastCtrl.create({
-      message: 'Transmitiendo ubicación en tiempo real',
+      message: 'Viaje iniciado — transmitiendo ubicación',
       duration: 2000,
       color: 'success',
       position: 'top',
@@ -148,9 +152,10 @@ export class ChoferHomePage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     await this.choferService.updateBusStatus(this.assignedBus!.id, 'activo');
+    await this.choferService.endViaje();
 
     const toast = await this.toastCtrl.create({
-      message: 'Transmisión detenida',
+      message: 'Viaje completado',
       duration: 2000,
       color: 'medium',
       position: 'top',

@@ -269,6 +269,13 @@
     color: #5a6677;
     font-weight: 500;
     ion-icon { font-size: 16px; color: #aab4c0; }
+
+    &.share-btn {
+      margin-left: auto;
+      color: #00c853;
+      cursor: pointer;
+      ion-icon { color: #00c853; }
+    }
   }
 }
 
