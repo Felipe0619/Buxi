@@ -1,0 +1,223 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="jirb-toolbar">
+    <ion-title>
+      <div class="jirb-title">
+        <span class="jirb-badge">JIRB</span>
+        <span>Panel de control</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refreshData()"><ion-icon name="refresh-outline" slot="icon-only"></ion-icon></ion-button>
+      <ion-button (click)="onLogout()"><ion-icon name="log-out-outline" slot="icon-only"></ion-icon></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="jirb-content">
+  <div class="jirb-container">
+
+    <div *ngIf="loading" class="loading-state"><ion-spinner name="crescent"></ion-spinner></div>
+
+    <div *ngIf="!loading">
+      <!-- Tabs -->
+      <div class="tab-scroll">
+        <div class="tab" [class.active]="activeTab==='overview'" (click)="switchTab('overview')">Resumen</div>
+        <div class="tab" [class.active]="activeTab==='empresas'" (click)="switchTab('empresas')">Empresas</div>
+        <div class="tab" [class.active]="activeTab==='rutas'" (click)="switchTab('rutas')">Rutas</div>
+        <div class="tab" [class.active]="activeTab==='buses'" (click)="switchTab('buses')">Buses</div>
+        <div class="tab" [class.active]="activeTab==='usuarios'" (click)="switchTab('usuarios')">Usuarios</div>
+        <div class="tab" [class.active]="activeTab==='calificaciones'" (click)="switchTab('calificaciones')">Reseñas</div>
+      </div>
+
+      <!-- ========== OVERVIEW ========== -->
+      <div *ngIf="activeTab==='overview'" class="tab-body">
+        <div class="stats-grid-4">
+          <div class="scard">
+            <ion-icon name="business" style="color:#9c27b0"></ion-icon>
+            <div class="sval">{{ stats.totalEmpresas }}</div>
+            <div class="slbl">Empresas</div>
+          </div>
+          <div class="scard">
+            <ion-icon name="git-branch-outline" style="color:#2196f3"></ion-icon>
+            <div class="sval">{{ stats.totalRutas }}</div>
+            <div class="slbl">Rutas</div>
+          </div>
+          <div class="scard">
+            <ion-icon name="bus" style="color:#00c853"></ion-icon>
+            <div class="sval">{{ stats.totalBuses }}</div>
+            <div class="slbl">Buses</div>
+          </div>
+          <div class="scard">
+            <ion-icon name="navigate" style="color:#ff9800"></ion-icon>
+            <div class="sval">{{ stats.busesEnRuta }}</div>
+            <div class="slbl">En ruta</div>
+          </div>
+        </div>
+
+        <div class="stats-grid-3">
+          <div class="scard">
+            <ion-icon name="people" style="color:#2196f3"></ion-icon>
+            <div class="sval">{{ stats.totalPasajeros }}</div>
+            <div class="slbl">Pasajeros</div>
+          </div>
+          <div class="scard">
+            <ion-icon name="person" style="color:#ff5722"></ion-icon>
+            <div class="sval">{{ stats.totalChoferes }}</div>
+            <div class="slbl">Choferes</div>
+          </div>
+          <div class="scard">
+            <ion-icon name="star" style="color:#ffc107"></ion-icon>
+            <div class="sval">{{ stats.promedioGeneral || '-' }}</div>
+            <div class="slbl">Rating ({{ stats.totalCalificaciones }})</div>
+          </div>
+        </div>
+
+        <h3 class="stitle">Empresas registradas</h3>
+        <div class="item-row" *ngFor="let e of empresas">
+          <div class="status-dot" [style.background]="e.estado==='activo'?'#00c853':'#9aa5b4'"></div>
+          <div class="item-info">
+            <strong>{{ e.nombre }}</strong>
+            <span>{{ e.cedula_juridica || 'Sin cédula' }}</span>
+          </div>
+          <span class="item-badge" [style.color]="e.estado==='activo'?'#00c853':'#9aa5b4'">{{ e.estado }}</span>
+        </div>
+      </div>
+
+      <!-- ========== EMPRESAS ========== -->
+      <div *ngIf="activeTab==='empresas'" class="tab-body">
+        <ion-button expand="block" class="btn-action" (click)="addEmpresa()">
+          <ion-icon name="add-outline" slot="start"></ion-icon> Nueva empresa
+        </ion-button>
+
+        <div class="card-list" *ngFor="let e of empresas">
+          <div class="card-left">
+            <div class="status-dot" [style.background]="e.estado==='activo'?'#00c853':'#9aa5b4'"></div>
+          </div>
+          <div class="card-center">
+            <strong>{{ e.nombre }}</strong>
+            <span>{{ e.cedula_juridica || 'Sin cédula' }} · {{ e.telefono || 'Sin tel.' }}</span>
+            <span *ngIf="e.email">{{ e.email }}</span>
+          </div>
+          <div class="card-right">
+            <ion-button fill="clear" size="small" (click)="toggleEmpresaStatus(e)">
+              <ion-icon [name]="e.estado==='activo'?'pause-outline':'play-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="deleteEmpresa(e)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== RUTAS ========== -->
+      <div *ngIf="activeTab==='rutas'" class="tab-body">
+        <ion-button expand="block" class="btn-action" (click)="addRuta()">
+          <ion-icon name="add-outline" slot="start"></ion-icon> Nueva ruta
+        </ion-button>
+
+        <div class="card-list" *ngFor="let r of rutas">
+          <div class="card-left"><div class="color-bar" [style.background]="r.color"></div></div>
+          <div class="card-center">
+            <strong>{{ r.nombre }}</strong>
+            <span>{{ r.origen }} → {{ r.destino }}</span>
+            <span class="empresa-tag">{{ $any(r.empresa)?.nombre }}</span>
+          </div>
+          <div class="card-right">
+            <ion-button fill="clear" size="small" (click)="toggleRutaStatus(r)">
+              <ion-icon [name]="r.estado==='activa'?'pause-outline':'play-outline'" slot="icon-only"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="deleteRuta(r)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========== BUSES ========== -->
+      <div *ngIf="activeTab==='buses'" class="tab-body">
+        <div class="card-list" *ngFor="let b of buses">
+          <div class="card-left">
+            <div class="status-dot" [style.background]="getBusStatusColor(b.estado)"></div>
+          </div>
+          <div class="card-center">
+            <strong>{{ b.placa }} <span class="unit-tag" *ngIf="b.numero_unidad">{{ b.numero_unidad }}</span></strong>
+            <span>Empresa: {{ $any(b.empresa)?.nombre || '-' }}</span>
+            <span>Ruta: {{ $any(b.ruta)?.nombre || 'Sin asignar' }}</span>
+            <span>Chofer: {{ b.chofer?.nombre_completo || 'Sin asignar' }}</span>
+          </div>
+          <div class="card-right">
+            <span class="status-badge" [style.color]="getBusStatusColor(b.estado)">{{ getBusStatusLabel(b.estado) }}</span>
+            <ion-button fill="clear" size="small" color="danger" (click)="deleteBus(b)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <div class="empty-msg" *ngIf="buses.length===0">No hay buses registrados</div>
+      </div>
+
+      <!-- ========== USUARIOS ========== -->
+      <div *ngIf="activeTab==='usuarios'" class="tab-body">
+        <ion-searchbar placeholder="Buscar por nombre o correo..." debounce="300" (ionInput)="onUserSearch($event)" class="user-search"></ion-searchbar>
+
+        <div class="role-filters">
+          <div class="rf" [class.active]="userRoleFilter==='todos'" (click)="filterByRole('todos')">Todos</div>
+          <div class="rf" [class.active]="userRoleFilter==='pasajero'" (click)="filterByRole('pasajero')">Pasajeros</div>
+          <div class="rf" [class.active]="userRoleFilter==='chofer'" (click)="filterByRole('chofer')">Choferes</div>
+          <div class="rf" [class.active]="userRoleFilter==='admin_empresa'" (click)="filterByRole('admin_empresa')">Admins</div>
+          <div class="rf" [class.active]="userRoleFilter==='admin_jirb'" (click)="filterByRole('admin_jirb')">JIRB</div>
+        </div>
+
+        <div class="card-list" *ngFor="let u of filteredUsers">
+          <div class="card-left">
+            <div class="user-avatar">
+              <ion-icon name="person"></ion-icon>
+            </div>
+          </div>
+          <div class="card-center">
+            <strong>{{ u.nombre_completo }}</strong>
+            <span>{{ u.correo }}</span>
+            <span *ngIf="u.telefono">Tel: {{ u.telefono }}</span>
+          </div>
+          <div class="card-right col">
+            <span class="role-tag" [style.background]="getRoleColor(u.rol)">{{ getRoleLabel(u.rol) }}</span>
+            <div class="user-actions">
+              <ion-button fill="clear" size="small" (click)="changeUserRole(u)">
+                <ion-icon name="shield-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" size="small" [color]="u.estado==='activo'?'warning':'success'" (click)="toggleUserStatus(u)">
+                <ion-icon [name]="u.estado==='activo'?'ban-outline':'checkmark-circle-outline'" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </div>
+        <div class="empty-msg" *ngIf="filteredUsers.length===0">No se encontraron usuarios</div>
+      </div>
+
+      <!-- ========== CALIFICACIONES ========== -->
+      <div *ngIf="activeTab==='calificaciones'" class="tab-body">
+        <div class="rating-summary">
+          <div class="rs-num">{{ stats.promedioGeneral || '0' }}</div>
+          <div class="rs-stars">
+            <ion-icon *ngFor="let s of getStars(stats.promedioGeneral)" [name]="s ? 'star' : 'star-outline'" [class.on]="s"></ion-icon>
+          </div>
+          <div class="rs-count">{{ stats.totalCalificaciones }} calificaciones</div>
+        </div>
+
+        <div class="card-list" *ngFor="let c of calificaciones">
+          <div class="card-center">
+            <div class="cal-stars">
+              <ion-icon *ngFor="let s of getStars(c.estrellas)" [name]="s ? 'star' : 'star-outline'" [class.on]="s"></ion-icon>
+            </div>
+            <span *ngIf="c.comentario" class="cal-comment">{{ c.comentario }}</span>
+            <span class="cal-date">{{ c.created_at | date:'short' }}</span>
+          </div>
+          <ion-button fill="clear" size="small" color="danger" (click)="deleteCalificacion(c)">
+            <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="empty-msg" *ngIf="calificaciones.length===0">No hay calificaciones aún</div>
+      </div>
+
+    </div>
+  </div>
+</ion-content>
