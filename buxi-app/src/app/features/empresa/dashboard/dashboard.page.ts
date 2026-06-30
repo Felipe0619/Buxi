@@ -54,7 +54,10 @@ export class EmpresaDashboardPage implements OnInit, OnDestroy {
       if (this.profile?.empresa_id) {
         await this.loadData();
       }
-    } catch {} finally { this.loading = false; }
+    } catch {} finally {
+      this.loading = false;
+      setTimeout(() => this.initLiveMap(), 150);
+    }
   }
 
   async loadData() {
