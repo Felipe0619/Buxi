@@ -1,4 +1,4 @@
-.login-content { --background: #f6f8fb; }
+.login-content { --background: var(--ion-background-color); }
 
 .login-wrapper {
   min-height: 100%;
@@ -12,7 +12,7 @@
     width: 64px; height: 64px; background: #00c853; border-radius: 20px;
     display: grid; place-items: center; margin: 0 auto 14px;
   }
-  h1 { font-size: 28px; font-weight: 800; color: #1a2b3c; margin: 0; letter-spacing: -0.5px; }
+  h1 { font-size: 28px; font-weight: 800; color: var(--ion-text-color); margin: 0; letter-spacing: -0.5px; }
   p { font-size: 13px; color: #8a95a3; margin: 4px 0 0; }
 }
 
@@ -34,11 +34,11 @@
     border: 1.5px solid transparent; border-radius: 12px; padding: 0 14px;
     transition: border-color 0.15s, box-shadow 0.15s;
     &:focus-within { border-color: #00c853; box-shadow: 0 0 0 3px rgba(0,200,83,0.08); background: #fff; }
-    ion-input { --padding-start: 0; --padding-top: 12px; --padding-bottom: 12px; --color: #1a2b3c; font-size: 15px; flex: 1; }
+    ion-input { --padding-start: 0; --padding-top: 12px; --padding-bottom: 12px; --color: var(--ion-text-color); font-size: 15px; flex: 1; }
     .eye { font-size: 18px; color: #b0b8c4; cursor: pointer; padding: 4px; }
   }
-  &.has-error .input-wrap { border-color: #f44336; }
-  .err { display: block; font-size: 11px; color: #f44336; margin-top: 4px; padding-left: 2px; }
+  &.has-error .input-wrap { border-color: var(--ion-color-danger); }
+  .err { display: block; font-size: 11px; color: var(--ion-color-danger); margin-top: 4px; padding-left: 2px; }
 }
 
 .btn-main {

@@ -27,7 +27,7 @@
   border-radius: 50%;
   display: grid; place-items: center;
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  ion-icon { font-size: 18px; color: #1a2b3c; }
+  ion-icon { font-size: 18px; color: var(--ion-text-color); }
 }
 
 .search-pill {
@@ -58,7 +58,7 @@
   border-radius: 50%;
   display: grid; place-items: center;
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  ion-icon { font-size: 19px; color: #1a2b3c; }
+  ion-icon { font-size: 19px; color: var(--ion-text-color); }
 }
 
 // ---- ROUTE HEADER ----
@@ -75,13 +75,13 @@
     width: 36px; height: 36px;
     display: grid; place-items: center;
     cursor: pointer;
-    ion-icon { font-size: 20px; color: #1a2b3c; }
+    ion-icon { font-size: 20px; color: var(--ion-text-color); }
   }
 
   .route-header-info {
     flex: 1;
     display: flex; flex-direction: column;
-    strong { font-size: 14px; color: #1a2b3c; letter-spacing: -0.2px; }
+    strong { font-size: 14px; color: var(--ion-text-color); letter-spacing: -0.2px; }
     span { font-size: 11px; color: #8a95a3; margin-top: 1px; }
   }
 
@@ -101,7 +101,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  background: #1a2b3c;
+  background: var(--dash-surface);
   color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
@@ -129,7 +129,7 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  background: #1a2b3c;
+  background: var(--dash-surface);
   color: #fff;
   padding: 6px 14px;
   border-radius: 20px;
@@ -164,7 +164,7 @@
 
   .eta-info {
     flex: 1; display: flex; flex-direction: column;
-    strong { font-size: 14px; color: #1a2b3c; }
+    strong { font-size: 14px; color: var(--ion-text-color); }
     span { font-size: 11px; color: #8a95a3; }
   }
 
@@ -247,7 +247,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    strong { font-size: 16px; color: #1a2b3c; }
+    strong { font-size: 16px; color: var(--ion-text-color); }
     span { font-size: 13px; color: #7a8694; margin-top: 1px; }
     .signal-warning { color: #f57c00; font-weight: 600; }
   }
@@ -390,7 +390,7 @@
   }
 
   .stop-tooltip {
-    background: #1a2b3c;
+    background: var(--dash-surface);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -400,7 +400,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 
     &::before {
-      border-top-color: #1a2b3c !important;
+      border-top-color: var(--dash-surface) !important;
     }
   }
 }

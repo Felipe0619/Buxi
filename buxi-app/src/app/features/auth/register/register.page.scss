@@ -1,4 +1,4 @@
-.reg-content { --background: #f6f8fb; }
+.reg-content { --background: var(--ion-background-color); }
 
 .reg-wrapper {
   padding: 16px 20px 32px; max-width: 400px; margin: 0 auto;
@@ -6,8 +6,8 @@
 
 .reg-top {
   margin-bottom: 24px;
-  .back-btn { --color: #1a2b3c; margin: 0 0 8px -14px; font-size: 20px; }
-  h2 { font-size: 24px; font-weight: 800; color: #1a2b3c; margin: 0; letter-spacing: -0.3px; }
+  .back-btn { --color: var(--ion-text-color); margin: 0 0 8px -14px; font-size: 20px; }
+  h2 { font-size: 24px; font-weight: 800; color: var(--ion-text-color); margin: 0; letter-spacing: -0.3px; }
   p { font-size: 13px; color: #8a95a3; margin: 4px 0 0; }
 }
 
@@ -24,18 +24,18 @@
     border: 1.5px solid #eef1f5; border-radius: 12px; padding: 0 14px;
     transition: border-color 0.15s;
     &:focus-within { border-color: #00c853; }
-    ion-input { --padding-start: 0; --padding-top: 11px; --padding-bottom: 11px; --color: #1a2b3c; font-size: 14px; flex: 1; }
+    ion-input { --padding-start: 0; --padding-top: 11px; --padding-bottom: 11px; --color: var(--ion-text-color); font-size: 14px; flex: 1; }
     .eye { font-size: 18px; color: #b0b8c4; cursor: pointer; }
   }
   .select-wrap {
-    ion-select { flex: 1; --padding-start: 0; font-size: 14px; --color: #1a2b3c; }
+    ion-select { flex: 1; --padding-start: 0; font-size: 14px; --color: var(--ion-text-color); }
   }
-  .err { display: block; font-size: 11px; color: #f44336; margin-top: 3px; }
+  .err { display: block; font-size: 11px; color: var(--ion-color-danger); margin-top: 3px; }
 }
 
 .row-2 { display: flex; gap: 10px; }
 
-.err { font-size: 11px; color: #f44336; margin-bottom: 10px; }
+.err { font-size: 11px; color: var(--ion-color-danger); margin-bottom: 10px; }
 
 .terms {
   display: flex; align-items: flex-start; gap: 10px; margin: 8px 0 20px;
