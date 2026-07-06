@@ -79,6 +79,7 @@
       <div class="sheet-info">
         <strong>{{ selectedBusPlaca }}</strong>
         <span>{{ selectedBusRuta }}</span>
+        <span class="signal-warning" *ngIf="selectedBusSignalText">{{ selectedBusSignalText }}</span>
       </div>
       <ion-button fill="clear" (click)="closeBusInfo()" class="close-btn">
         <ion-icon name="close" slot="icon-only"></ion-icon>

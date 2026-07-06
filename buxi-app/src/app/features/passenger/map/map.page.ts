@@ -8,6 +8,7 @@ import { SupabaseService } from '../../../core/services/supabase.service';
 import { BusLocation, Ruta, Parada } from '../../../core/models/transport.model';
 import { FeaturesService } from '../../../core/services/features.service';
 import { Geolocation } from '@capacitor/geolocation';
+import { animateMarkerTo } from '../../../core/utils/leaflet-marker-animation';
 
 @Component({
   selector: 'app-map',
@@ -43,6 +44,15 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
 
   get selectedBusPlaca(): string {
     return (this.selectedBus?.bus as any)?.placa || 'Bus';
+  }
+
+  get selectedBusSignalText(): string | null {
+    if (!this.selectedBus) return null;
+    const lastSeen = this.busLastSeen.get(this.selectedBus.bus_id);
+    if (!lastSeen) return null;
+    const minutes = Math.floor((Date.now() - lastSeen) / 60000);
+    if (minutes < 1) return null;
+    return `Sin señal hace ${minutes} min`;
   }
 
   get selectedBusRuta(): string {
@@ -251,7 +261,7 @@ export class MapPage implements OnInit, AfterViewInit, OnDestroy, ViewWillEnter 
 
     if (this.busMarkers.has(location.bus_id)) {
       const marker = this.busMarkers.get(location.bus_id)!;
-      marker.setLatLng(latlng);
+      animateMarkerTo(marker, latlng);
       marker.setOpacity(1);
     } else {
       const marker = L.marker(latlng, { icon: this.busIcon })

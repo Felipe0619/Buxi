@@ -10,6 +10,7 @@ import { FeaturesService } from '../../../core/services/features.service';
 import { UserProfile } from '../../../core/models/user-profile.model';
 import { Bus, Ruta, Parada, BusLocation } from '../../../core/models/transport.model';
 import { RutaFormComponent } from './ruta-form.component';
+import { animateMarkerTo } from '../../../core/utils/leaflet-marker-animation';
 
 @Component({
   selector: 'app-empresa-dashboard',
@@ -306,8 +307,9 @@ export class EmpresaDashboardPage implements OnInit, OnDestroy {
 
     if (this.liveMarkers.has(busId)) {
       const marker = this.liveMarkers.get(busId)!;
-      marker.setLatLng([lat, lng]);
+      animateMarkerTo(marker, [lat, lng]);
       marker.setOpacity(1);
+      this.refreshMarkerTooltip(busId, marker, false);
     } else {
       const icon = L.divIcon({
         className: 'emp-bus-marker',
@@ -316,7 +318,17 @@ export class EmpresaDashboardPage implements OnInit, OnDestroy {
       });
       const m = L.marker([lat, lng], { icon }).addTo(this.liveMap);
       this.liveMarkers.set(busId, m);
+      this.refreshMarkerTooltip(busId, m, false);
     }
+  }
+
+  private refreshMarkerTooltip(busId: string, marker: L.Marker, stale: boolean) {
+    const placa = this.buses.find(b => b.id === busId)?.placa || 'Bus';
+    marker.unbindTooltip();
+    marker.bindTooltip(stale ? `${placa} · sin señal` : placa, {
+      direction: 'top', offset: [0, -14],
+      className: stale ? 'bus-tooltip-stale' : 'bus-tooltip',
+    });
   }
 
   private startStaleBusWatcher() {
@@ -333,6 +345,7 @@ export class EmpresaDashboardPage implements OnInit, OnDestroy {
           this.liveMarkersLastSeen.delete(busId);
         } else if (age > this.STALE_MS) {
           marker.setOpacity(0.35);
+          this.refreshMarkerTooltip(busId, marker, true);
         }
       });
     }, 10000);
