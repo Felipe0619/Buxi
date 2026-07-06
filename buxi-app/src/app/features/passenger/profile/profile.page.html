@@ -122,7 +122,10 @@
         Cerrar sesión
       </ion-button>
 
-      <button class="delete-account-link" (click)="onDeleteAccount()">Eliminar mi cuenta</button>
+      <ion-button expand="block" fill="outline" class="btn-logout btn-delete-account" (click)="onDeleteAccount()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Eliminar mi cuenta
+      </ion-button>
     </div>
   </div>
 </ion-content>
