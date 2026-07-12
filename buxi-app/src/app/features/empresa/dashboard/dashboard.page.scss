@@ -174,7 +174,7 @@
   strong { color: #fff; font-size: 13px; }
   .muted { color: var(--dash-text-muted); font-size: 11px; }
   .badge { font-size: 10px; font-weight: 600; text-transform: capitalize; }
-  .status-tag { font-size: 9px; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+  .status-tag { font-size: 10px; font-weight: 700; color: #fff; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
 }
 
 // ====== TABLE ROWS ======
@@ -189,7 +189,7 @@
     .muted { color: var(--dash-text-muted); font-size: 11px; margin-top: 1px; }
   }
   .badge { font-size: 10px; font-weight: 600; text-transform: capitalize; }
-  .status-tag { font-size: 9px; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+  .status-tag { font-size: 10px; font-weight: 700; color: #fff; padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
   .avatar-sm {
     width: 32px; height: 32px; background: #1e3350; border-radius: 50%;
     display: grid; place-items: center; flex-shrink: 0;
@@ -202,7 +202,7 @@
 .empty { text-align: center; padding: 24px; color: var(--dash-text-muted); font-size: 13px; }
 
 .btn-action {
-  --background: #00c853; --border-radius: 10px; --box-shadow: none;
+  --background: #00c853; --border-radius: 12px; --box-shadow: none;
   font-weight: 600; font-size: 13px; height: 40px; text-transform: none; margin-bottom: 14px;
 }
 

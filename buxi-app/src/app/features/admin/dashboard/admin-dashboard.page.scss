@@ -184,23 +184,23 @@
   }
 }
 
-.badge { font-size: 11px; font-weight: 600; text-transform: capitalize; }
+.badge { font-size: 10px; font-weight: 600; text-transform: capitalize; }
 
 .status-pill {
   display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
-  padding: 3px 10px; border-radius: 6px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px;
 }
 
 .role-chip {
-  display: inline-block; font-size: 9px; font-weight: 700; color: #fff;
-  padding: 3px 8px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.3px;
+  display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
+  padding: 3px 8px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px;
 }
 
-.empty { text-align: center; padding: 28px; color: #b0b8c4; font-size: 13px; }
+.empty { text-align: center; padding: 24px; color: #b0b8c4; font-size: 13px; }
 
 // ====== BUTTONS ======
 .btn-primary {
-  --background: var(--dash-bg); --border-radius: 10px; --box-shadow: none;
+  --background: var(--dash-bg); --border-radius: 12px; --box-shadow: none;
   font-weight: 600; font-size: 13px; height: 40px; text-transform: none;
   margin-bottom: 16px;
 }
@@ -270,7 +270,7 @@
 // ====== PLAN BADGE ======
 .plan-badge {
   display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
-  padding: 3px 10px; border-radius: 6px; cursor: pointer;
+  padding: 3px 8px; border-radius: 6px; cursor: pointer;
   text-transform: uppercase; letter-spacing: 0.3px;
 }
 
