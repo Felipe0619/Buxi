@@ -1,0 +1,65 @@
+<ion-content [fullscreen]="true" class="legal-content">
+  <div class="legal-wrapper">
+
+    <ion-button fill="clear" routerLink="/auth/login" class="back-btn">
+      <ion-icon name="chevron-back" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <h1>Política de Privacidad de Buxi</h1>
+    <p class="updated">Última actualización: julio de 2026</p>
+
+    <section>
+      <h2>1. Quiénes somos</h2>
+      <p>Buxi es una plataforma de rastreo de buses en tiempo real operada por JIRB. Empresas de transporte (choferes y administradores) y pasajeros usan la app para compartir y consultar la ubicación de buses en Costa Rica.</p>
+    </section>
+
+    <section>
+      <h2>2. Qué datos recolectamos</h2>
+      <ul>
+        <li><strong>Datos de cuenta:</strong> nombre completo, correo, teléfono y provincia (los que ingresás al registrarte, o los que compartís al iniciar sesión con Google/Facebook).</li>
+        <li><strong>Ubicación GPS:</strong> si sos chofer, la app envía la posición, velocidad y rumbo del bus mientras estás en ruta activa. Esta ubicación es visible públicamente en la app (así funciona el rastreo en tiempo real) mientras el viaje está activo.</li>
+        <li><strong>Foto de perfil / logo:</strong> si elegís subir una.</li>
+        <li><strong>Búsquedas de lugares:</strong> las consultas de autocompletado de direcciones se envían a OpenStreetMap (Nominatim) a través de nuestro propio servidor, sin asociarlas a tu cuenta.</li>
+        <li><strong>Datos de uso interno:</strong> registros de actividad (qué acciones administrativas se hicieron) para auditoría, visibles solo para el equipo de JIRB.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Para qué usamos tus datos</h2>
+      <ul>
+        <li>Mostrar la ubicación de los buses en tiempo real a los pasajeros.</li>
+        <li>Identificarte según tu rol (pasajero, chofer, administrador de empresa, o administrador de plataforma) y darte acceso a las funciones correspondientes.</li>
+        <li>Detectar ubicaciones GPS físicamente imposibles (anti-spoofing) para proteger la integridad del sistema.</li>
+        <li>Comunicarnos con vos (confirmación de cuenta, recuperación de contraseña).</li>
+      </ul>
+      <p>No vendemos tus datos a terceros ni los usamos con fines publicitarios.</p>
+    </section>
+
+    <section>
+      <h2>4. Con quién compartimos datos</h2>
+      <p>Usamos los siguientes proveedores para operar la app, cada uno con acceso limitado a lo que necesita para su función:</p>
+      <ul>
+        <li><strong>Supabase</strong> — base de datos, autenticación y almacenamiento de archivos.</li>
+        <li><strong>Vercel</strong> — hospedaje de la aplicación web.</li>
+        <li><strong>Google / Facebook</strong> — si elegís iniciar sesión con ellos, recibimos tu nombre, correo y foto de perfil públicos según lo autorices en ese momento.</li>
+        <li><strong>OpenStreetMap / Stadia Maps / OSRM</strong> — mapas, búsqueda de direcciones y cálculo de rutas.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>5. Tus derechos</h2>
+      <p>Podés editar tu información desde tu perfil en cualquier momento. Podés eliminar tu cuenta y tus datos personales desde la app (Perfil → Eliminar cuenta) o escribiéndonos.</p>
+    </section>
+
+    <section>
+      <h2>6. Seguridad</h2>
+      <p>Tu contraseña nunca se almacena en texto plano. El acceso a los datos está restringido por rol: cada usuario solo puede ver la información que le corresponde según su cuenta.</p>
+    </section>
+
+    <section>
+      <h2>7. Contacto</h2>
+      <p>Para consultas sobre tus datos o esta política, escribinos a <a href="mailto:buxi.cr@gmail.com">buxi.cr@gmail.com</a>.</p>
+    </section>
+
+  </div>
+</ion-content>

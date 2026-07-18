@@ -63,7 +63,7 @@
 
       <div class="terms">
         <ion-checkbox [(ngModel)]="acceptTerms" [ngModelOptions]="{standalone: true}"></ion-checkbox>
-        <span>Acepto los <a href="#">Términos</a> y <a href="#">Privacidad</a></span>
+        <span>Acepto los <a routerLink="/legal/terms">Términos</a> y <a routerLink="/legal/privacy">Privacidad</a></span>
       </div>
 
       <ion-button expand="block" type="submit" class="btn-main" [disabled]="registerForm.invalid || !acceptTerms">
